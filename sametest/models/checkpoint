@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/tyler/2018_Development/Fantasy_Stats_ML/sametest/models/test_model"
+all_model_checkpoint_paths: "/home/tyler/2018_Development/Fantasy_Stats_ML/sametest/models/test_model"
