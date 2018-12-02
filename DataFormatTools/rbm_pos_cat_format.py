@@ -22,7 +22,7 @@ if parent_dir[-1] is not '/' : parent_dir = parent_dir + '/'
 data_dir = parent_dir + DATA_DIR_NAME 
 
 # get all the files in our RawFantasyData folder (in python list)
-data_filenames = os.listdir(path=data_dir) #can i use these as paths?
+data_filenames = os.listdir(path=data_dir) 
 
 # for each file, split the header away and save to our chosen directoyr, remove the fantasy
 # ----

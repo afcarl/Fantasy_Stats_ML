@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/tyler/2018_Development/Fantasy_Stats_ML/fantasy_test/models/fantasy_position"
+all_model_checkpoint_paths: "/home/tyler/2018_Development/Fantasy_Stats_ML/fantasy_test/models/fantasy_position"
