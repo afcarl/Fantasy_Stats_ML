@@ -88,7 +88,6 @@ class RBM(object):
 			self._train_model(train_set, validation_set)
 			self.tf_saver.save(self.tf_session, self.model_path)
 
-		print("I'm done")
 
 
 	def _initialize_tf_utilities_and_ops(self, restore_previous_model):
