@@ -30,7 +30,7 @@ class FFNN(object):
 	# 
 	def _setup(self, blueprint):
 		self._setup_shapes(blueprint)
-		self._create_RBMs()
+		#self._create_RBMs()
 
 
 	# function that accepts a list of layer sizes (read from the dna bitstring) and populates a list of 2-element lists specifying sizes
@@ -60,6 +60,8 @@ class FFNN(object):
 		else:
 			final_layer_size = [blueprint[-1] , self.output_layer_size]
 			self.rbm_shapes.append(final_layer_size)
+
+	# function that uses the list of RBM shapes and creates our stack of RBMs
 
 
 	# returns the true DNA of this instance of FFNN
