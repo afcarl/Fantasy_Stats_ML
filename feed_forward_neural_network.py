@@ -17,20 +17,26 @@ TESTING_PATH = 'FFNN_Dev_Testing'
 class FFNN(object):
 	
 
-	def __init__(self, name, input_layer_size , output_layer_size, dna):
+	def __init__(self, name, input_layer_size , output_layer_size, dna, gen_id=0 , child_id=0, test_id=0 , main_dir='RBMDirectory'):
 		self.dna = dna # the genetic code that shapes our FFNN
 		self.rbms = []
 		self.rbm_shapes = []
 		self.name = name
 		self.input_layer_size = input_layer_size
 		self.output_layer_size = output_layer_size
+		#self.gen_id = gen_id
+		#self.child_id = child_id
+		#self.test_id = test_id
+		self.main_dir = main_dir
+		# get uid
+		self.uid = self._get_uid(test_id , gen_id, child_id)
 		# set up RBMs
 		self._setup(genhelp.read_blueprint(self.dna))
 
 	# 
 	def _setup(self, blueprint):
 		self._setup_shapes(blueprint)
-		#self._create_RBMs()
+		self._create_RBMs()
 
 
 	# function that accepts a list of layer sizes (read from the dna bitstring) and populates a list of 2-element lists specifying sizes
@@ -62,7 +68,24 @@ class FFNN(object):
 			self.rbm_shapes.append(final_layer_size)
 
 	# function that uses the list of RBM shapes and creates our stack of RBMs
+	def _create_RBMs(self):
+		rbm_id = 0
 
+		# for each shape in rbm_shapes, create a corresponding rbm.RBM and add it to the rbms list
+		for shape in self.rbm_shapes:
+			rbm_id = rbm_id + 1
+			rbm_name = self.uid + 'rbm' + rbm_id
+			visible, hidden = shape 
+			vut = 'bin' # the visible unit type of all but first layer are of input layer binary, the first is gauss
+			if rbm_id == 1:
+				vut = 'gauss'
+			r = rbm.RBM(visible , hidden , visible_unit_type=vut , model_name=rbm_name , verbose=1 , main_dir=self.main_dir)
+			self.rbms.append(r)
+
+
+	# concatenat a unique id for this FFNN
+	def _generate_uid(self, test_id , gen_id , child_id):
+		return "test" + str(self.test_id) + "generation" + str(self.gen_id) + "child" + str(self.child_id)
 
 	# returns the true DNA of this instance of FFNN
 	def get_dna(self):
