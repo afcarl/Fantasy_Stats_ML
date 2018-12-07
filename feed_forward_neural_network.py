@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np 
 import rbm
 import testing_tools
+import genetic_helpers as genhelp
 
 TRAINING_SET_PATH = "RBMTrainingDataset/training_set.csv"
 TEST_SET_PATH = "FormattedFantasyData/2018_data.csv"
@@ -16,10 +17,66 @@ TESTING_PATH = 'FFNN_Dev_Testing'
 class FFNN(object):
 	
 
-	def __init__(self, name):
+	def __init__(self, name, input_layer_size , output_layer_size, dna):
+		self.dna = dna # the genetic code that shapes our FFNN
 		self.rbms = []
+		self.rbm_shapes = []
 		self.name = name
-		print("hi my name is: " , self.name)
+		self.input_layer_size = input_layer_size
+		self.output_layer_size = output_layer_size
+		# set up RBMs
+		self._setup(genhelp.read_blueprint(self.dna))
+
+	# 
+	def _setup(self, blueprint):
+		self._setup_shapes(blueprint)
+		self._create_RBMs()
+
+
+	# function that accepts a list of layer sizes (read from the dna bitstring) and populates a list of 2-element lists specifying sizes
+	#	for all of our RBMs
+	def _setup_shapes(self, blueprint):
+		# determine how many RBMs we will have
+		# NOTE - this should be the len of the blueprint plus one 
+		num_rbms = len(blueprint) + 1
+
+		# special case, there is only one layer
+		if num_rbms == 1:
+			layer_1_RBM_size = [self.input_layer_size , self.output_layer_size]
+		else:
+			# the first entry in our blueprint is the hidden layer for our first RBM (the visible layer is input_layer_size for this FFNN object)
+			layer_1_RBM_size = [self.input_layer_size , blueprint[0]]
+
+		self.rbm_shapes.append(layer_1_RBM_size)
+
+		# now we get the sizes of the other RBMs
+		for vsize , hsize in zip(blueprint , blueprint[1:]):
+			dims = [vsize,hsize]
+			self.rbm_shapes.append(dims)
+
+		# if our special case wasn't true above, we need to create the 'top' layer using output_layer_size of FFNN object
+		if num_rbms == 1:
+			pass # we only have one layer, and the size of it was appended via layer_1_RBM_size
+		else:
+			final_layer_size = [blueprint[-1] , self.output_layer_size]
+			self.rbm_shapes.append(final_layer_size)
+
+
+	# returns the true DNA of this instance of FFNN
+	def get_dna(self):
+		return self.dna
+
+	# returns a gamete (mutated bistring) for this FFNN
+	def get_gamete(self):
+		return genhelp.mutate_bitstring(self.dna , 0.1)
+
+
+
+
+	''' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTING FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '''
+
+	def show_RBM_layers(self):
+		print(self.rbm_shapes)
 
 	def testing_run_hardcoded_RBM_pass(self):
 		self.rbms.append(rbm.RBM(NUM_DATAPOINTS, 3 , visible_unit_type='gauss', model_name=self.name +"_layer_1" , verbose=1, main_dir='layer_1_test'))

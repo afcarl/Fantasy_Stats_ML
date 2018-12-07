@@ -10,7 +10,7 @@ import random as rand
 MAX_POSSIBLE_LAYERS = 7
 BYTES_PER_LAYER = 2 #current max of 32,768 nodes per layer
 
-# runction returns a random bitstring blueprint for a neural network based on defined format
+# function returns a random bitstring blueprint for a neural network based on defined format
 def generate_blueprint():
 	blueprint = ''
 
@@ -89,7 +89,7 @@ def breed_bitstrings(b1 , b2):
 	
 
 
-# runction that returns a random value within range
+# function that returns a random value within range
 def random_splice_point(len):
 	return rand.randint(1 , len-2)
 	
