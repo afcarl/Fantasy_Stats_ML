@@ -40,10 +40,10 @@ def read_blueprint(blueprint , num_layers=MAX_POSSIBLE_LAYERS):
 	# read byte representation of every possible layer, initial values are set such that for loop sets them correctly
 	# and ignores first byte (which is just a representation of max bytes in bitstring)
 	start = 0
-	end = 7
+	end = 8
 	for i in range(num_layers):
 		# move start and end to appropriate positions
-		start = end + 1
+		start = end
 		end = start + (8 * BYTES_PER_LAYER) #- 1
 
 		# grab our relevant bits
@@ -146,10 +146,10 @@ def custom_mutate_round(random_value_float , mutation_chance):
 # prints blueprint as representative bytes
 def view_blueprint_bytes(blueprint, num_layers=MAX_POSSIBLE_LAYERS):
 	start = 0
-	end = 0
+	end = 8
 	for i in range(num_layers):
-		end = end + 8
-		start = end - 8
+		end = end + 16
+		start = end - 16
 		layer_bits = blueprint[start:end]
 		display = layer_bits[:7] + " " + layer_bits[7:]
 		print(layer_bits)

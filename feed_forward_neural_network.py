@@ -8,6 +8,8 @@ import numpy as np
 import rbm
 import testing_tools
 import genetic_helpers as genhelp
+import zconfig
+import os
 
 TRAINING_SET_PATH = "RBMTrainingDataset/training_set.csv"
 TEST_SET_PATH = "FormattedFantasyData/2018_data.csv"
@@ -18,18 +20,18 @@ class FFNN(object):
 	
 
 	def __init__(self, name, input_layer_size , output_layer_size, dna, gen_id=0 , child_id=0, test_id=0 , main_dir='RBMDirectory'):
-		self.dna = dna # the genetic code that shapes our FFNN
+		self.dna = dna # the genetic code that shapes our FFNN NOTE: this is the bitstring
 		self.rbms = []
 		self.rbm_shapes = []
 		self.name = name
 		self.input_layer_size = input_layer_size
 		self.output_layer_size = output_layer_size
-		#self.gen_id = gen_id
-		#self.child_id = child_id
-		#self.test_id = test_id
+		self.gen_id = gen_id
+		self.child_id = child_id
+		self.test_id = test_id
 		self.main_dir = main_dir
 		# get uid
-		self.uid = self._get_uid(test_id , gen_id, child_id)
+		self.uid = self._generate_uid(self.test_id , self.gen_id, self.child_id)
 		# set up RBMs
 		self._setup(genhelp.read_blueprint(self.dna))
 
@@ -37,6 +39,7 @@ class FFNN(object):
 	def _setup(self, blueprint):
 		self._setup_shapes(blueprint)
 		self._create_RBMs()
+		self._setup_files()
 
 
 	# function that accepts a list of layer sizes (read from the dna bitstring) and populates a list of 2-element lists specifying sizes
@@ -74,13 +77,53 @@ class FFNN(object):
 		# for each shape in rbm_shapes, create a corresponding rbm.RBM and add it to the rbms list
 		for shape in self.rbm_shapes:
 			rbm_id = rbm_id + 1
-			rbm_name = self.uid + 'rbm' + rbm_id
+			rbm_name = self.uid + 'rbm' + str(rbm_id)
 			visible, hidden = shape 
 			vut = 'bin' # the visible unit type of all but first layer are of input layer binary, the first is gauss
 			if rbm_id == 1:
 				vut = 'gauss'
 			r = rbm.RBM(visible , hidden , visible_unit_type=vut , model_name=rbm_name , verbose=1 , main_dir=self.main_dir)
 			self.rbms.append(r)
+
+	# function to train stack of RBMs
+	# TODO
+	def train_RBMs(self, training_dataset):
+		pass
+
+	# function that will output in csv format the weights/biases of the stack
+	# TODO
+
+	# function that will train FFNN with all weights
+
+	# function that sets up the directories and files for training and recording
+	def _setup_files(self):
+		# create a subdirectory in our specified main directory
+		ffnn_target_dir = zconfig.PARENT_PATH + self.main_dir
+		# ensure that there is a trailing '/'
+		if ffnn_target_dir[-1] is not '/' : ffnn_target_dir = ffnn_target_dir + '/'
+
+		#Ensure self.main_dir exists and if not create it
+		if self.main_dir not in os.listdir(zconfig.PARENT_PATH):
+			os.mkdir(ffnn_target_dir)
+
+		# create subdirectory with the uid of this ffnn in the target dir
+		if self.uid not in os.listdir(ffnn_target_dir):
+			os.mkdir(ffnn_target_dir + self.uid)
+
+		my_subdir = ffnn_target_dir + self.uid + '/'
+
+		# make a tmp folder for transformed data to be moved around
+		os.mkdir(my_subdir + 'tmp')
+		# make a subdirectory for each individual RBM
+		layer_str = 'layer_'
+		count = 1
+		for i in self.rbms:
+			dirname = layer_str + str(count) + '_RMB'
+			os.mkdir(my_subdir + dirname)
+			count = count + 1
+
+
+
 
 
 	# concatenat a unique id for this FFNN
