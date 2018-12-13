@@ -1,0 +1,15 @@
+Class FFNN
+
+
+
+Constructor:
+	FFNN(self, name, input_layer_size , output_layer_size , dna , gen_id , child_id, test_id, main_dir):
+		name- the identifying name of the ffnn
+
+
+Public Functions:
+	train_RBMs(training_dataset):
+		trains the stack of RBMs using the training dataset
+
+	save_RBM_data():
+		each RBM will save its weight matrix, and two bias vectors as csv's in the subdirectory bearing it's name

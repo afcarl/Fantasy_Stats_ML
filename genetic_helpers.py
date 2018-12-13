@@ -1,5 +1,6 @@
 # Helper functions controling the generation and breeding of neural networks
 import random as rand
+import testing_tools 
 
 # Note on schema
 # each layer is represented by BYTES_PER_LAYER, with the 1st bit of the byte string representing
@@ -161,5 +162,6 @@ def random_bitstring(size):
 		bitstring = bitstring + str(rand.randint(0,1))
 
 	return bitstring
+
 
 

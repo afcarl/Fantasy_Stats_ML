@@ -16,30 +16,49 @@ TEST_SET_PATH = "FormattedFantasyData/2018_data.csv"
 NUM_DATAPOINTS = 22
 TESTING_PATH = 'FFNN_Dev_Testing'
 
+'''
+Directory Structure
+	/main_dir
+		|
+		/uid
+			/tmp
+			/layerXRBM
+			/layerYRBM (etc)
+'''
+
+
+
 class FFNN(object):
 	
 
 	def __init__(self, name, input_layer_size , output_layer_size, dna, gen_id=0 , child_id=0, test_id=0 , main_dir='RBMDirectory'):
+		# numerical information for the FFNN
 		self.dna = dna # the genetic code that shapes our FFNN NOTE: this is the bitstring
-		self.rbms = []
+		self.rbms = [] 
 		self.rbm_shapes = []
-		self.name = name
 		self.input_layer_size = input_layer_size
 		self.output_layer_size = output_layer_size
+
+		# data for maintaining organized filestructure and recall
+		self.name = name
 		self.gen_id = gen_id
 		self.child_id = child_id
 		self.test_id = test_id
 		self.main_dir = main_dir
-		# get uid
+
+		# get uid (this is of the form 'testXXgenXXchildXX')
 		self.uid = self._generate_uid(self.test_id , self.gen_id, self.child_id)
-		# set up RBMs
+		
+		# set up FFNN
 		self._setup(genhelp.read_blueprint(self.dna))
 
 	# 
 	def _setup(self, blueprint):
+		self.target_directory = self._setup_target_directory(self.main_dir , self.uid)
 		self._setup_shapes(blueprint)
 		self._create_RBMs()
-		self._setup_files()
+		self._setup_rbm_directories(self.target_directory)
+		
 
 
 	# function that accepts a list of layer sizes (read from the dna bitstring) and populates a list of 2-element lists specifying sizes
@@ -77,7 +96,7 @@ class FFNN(object):
 		# for each shape in rbm_shapes, create a corresponding rbm.RBM and add it to the rbms list
 		for shape in self.rbm_shapes:
 			rbm_id = rbm_id + 1
-			rbm_name = self.uid + 'rbm' + str(rbm_id)
+			rbm_name = self.uid + '_rbm_' + str(rbm_id)
 			visible, hidden = shape 
 			vut = 'bin' # the visible unit type of all but first layer are of input layer binary, the first is gauss
 			if rbm_id == 1:
@@ -88,43 +107,55 @@ class FFNN(object):
 	# function to train stack of RBMs
 	# TODO
 	def train_RBMs(self, training_dataset):
-		pass
+		# We will have at a minimum one layer, so train the first with training dataset
+		print("training " , self.rbms[0].model_name)
+		self.rbms[0].fit(training_dataset)
+		training_dataset = self.rbms[0].transform(training_dataset)
+		# we then transform the training dataset into the hidden layers dimensions to use
+		# as the input for the next training layer
+		for rbm in self.rbms[1:]:
+			print("training" , rbm.model_name)
+			rbm.fit(training_dataset)
+			training_dataset = rbm.transform(training_dataset)
+
 
 	# function that will output in csv format the weights/biases of the stack
-	# TODO
+	def save_RBM_data(self):
+		for rbm in self.rbms:
+			# the name of the folder we will write in
+			rbm_dir = self.target_directory + rbm.model_name + '/'
+			# get the rbm values
+			values = rbm.get_model_parameters()
+			# store 'W'
+			testing_tools.write_csv(values['W'] , rbm_dir + 'W.csv')
+			testing_tools.write_csv(values['bh_'] , rbm_dir + 'bh_.csv')
+			testing_tools.write_csv(values['bv_'] , rbm_dir + 'bv_.csv')
 
 	# function that will train FFNN with all weights
 
 	# function that sets up the directories and files for training and recording
-	def _setup_files(self):
-		# create a subdirectory in our specified main directory
-		ffnn_target_dir = zconfig.PARENT_PATH + self.main_dir
-		# ensure that there is a trailing '/'
-		if ffnn_target_dir[-1] is not '/' : ffnn_target_dir = ffnn_target_dir + '/'
+	# 	returns the path to this FFNN's subdirectory
 
-		#Ensure self.main_dir exists and if not create it
-		if self.main_dir not in os.listdir(zconfig.PARENT_PATH):
-			os.mkdir(ffnn_target_dir)
+	# function that accepts the NAME of the overall directory where all FFNN's are stored
+	# 	this function will create a subdirectory of that directory based on the given name of the
+	# 	FFNN. 
+	def _setup_target_directory(self, main_dir, target_name):
+		if main_dir[-1] is not '/' : main_dir = main_dir + '/'
 
-		# create subdirectory with the uid of this ffnn in the target dir
-		if self.uid not in os.listdir(ffnn_target_dir):
-			os.mkdir(ffnn_target_dir + self.uid)
+		target_directory = main_dir + target_name + '/'
 
-		my_subdir = ffnn_target_dir + self.uid + '/'
+		if target_name not in os.listdir(main_dir):
+			os.mkdir(target_directory)
+			os.mkdir(target_directory + 'tmp')
 
-		# make a tmp folder for transformed data to be moved around
-		os.mkdir(my_subdir + 'tmp')
-		# make a subdirectory for each individual RBM
-		layer_str = 'layer_'
-		count = 1
-		for i in self.rbms:
-			dirname = layer_str + str(count) + '_RMB'
-			os.mkdir(my_subdir + dirname)
-			count = count + 1
+		return target_directory
 
-
-
-
+	# function that creates a subdirectory (in our target i.e. working directory for each RBM)
+	def _setup_rbm_directories(self , target_directory):
+		for rbm in self.rbms:
+			rbm_name = rbm.model_name
+			if rbm_name not in os.listdir(target_directory):
+				os.mkdir(target_directory + rbm_name)
 
 	# concatenat a unique id for this FFNN
 	def _generate_uid(self, test_id , gen_id , child_id):
@@ -178,6 +209,8 @@ class FFNN(object):
 
 		testing_tools.write_csv(r.transform(test_set) , TESTING_PATH+'/Loaded_L2_transform.csv')
 
+	def test_dynamic_train(self, training_dataset , testing_dataset):
+		pass
 
 
 
